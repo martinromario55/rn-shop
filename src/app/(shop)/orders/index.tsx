@@ -10,6 +10,9 @@ import {
 import { Link, Stack } from 'expo-router'
 import { ORDERS } from '../../../../assets/orders'
 import { Order, OrderStatus } from '../../../../assets/types/order'
+import { Tables } from '../../../types/database.types'
+import { getMyOrders } from '../../../api/api'
+import { format } from 'date-fns'
 
 const statusDisplayText: Record<OrderStatus, string> = {
   Pending: 'Pending',
@@ -18,23 +21,23 @@ const statusDisplayText: Record<OrderStatus, string> = {
   InTransit: 'In Transit',
 }
 
-const renderItem: ListRenderItem<Order> = ({ item }) => (
+const renderItem: ListRenderItem<Tables<'order'>> = ({ item }) => (
   <Link href={`/orders/${item.slug}`} asChild>
     <Pressable style={styles.orderContainer}>
       <View style={styles.orderContent}>
         <View style={styles.orderDetailsContainer}>
           <Text style={styles.orderItem}>{item.slug}</Text>
-          <Text style={styles.orderDetails}>{item.details}</Text>
-          {/* <Text style={styles.orderDate}>
+          <Text style={styles.orderDetails}>{item.description}</Text>
+          <Text style={styles.orderDate}>
             {format(new Date(item.created_at), 'MMM dd, yyyy')}
-          </Text> */}
+          </Text>
         </View>
         <View
           style={[styles.statusBadge, styles[`statusBadge_${item.status}`]]}
         >
           <Text style={styles.statusText}>
-            {/* {item.status.toUpperCase()} */}
-            {statusDisplayText[item.status]}
+            {item.status.toUpperCase()}
+            {/* {statusDisplayText[item.status]} */}
           </Text>
         </View>
       </View>
@@ -43,7 +46,8 @@ const renderItem: ListRenderItem<Order> = ({ item }) => (
 )
 
 const Orders = () => {
-  if (!ORDERS.length)
+  const { data: orders, error, isLoading } = getMyOrders()
+  if (!orders?.length)
     return (
       <Text
         style={{
@@ -61,7 +65,7 @@ const Orders = () => {
     <View style={styles.container}>
       <Stack.Screen options={{ title: 'Orders' }} />
       <FlatList
-        data={ORDERS}
+        data={orders}
         keyExtractor={item => item.id.toString()}
         renderItem={renderItem}
       />

@@ -10,11 +10,12 @@ import {
 } from 'react-native'
 import { useCartStore } from '../store/cart-store'
 import { StatusBar } from 'expo-status-bar'
+import { createOrder, createOrderItem } from '../api/api'
 
 type CartItemType = {
   id: number
   title: string
-  image: any
+  heroImage: string
   price: number
   quantity: number
   maxQuantity: number
@@ -35,7 +36,11 @@ const CartItem = ({
 }: CartItemProps) => {
   return (
     <View style={styles.cartItem}>
-      <Image source={item.image} style={styles.itemImage} />
+      <Image
+        // source={item.image}
+        source={{ uri: item.heroImage }}
+        style={styles.itemImage}
+      />
       <View style={styles.itemDetails}>
         <Text style={styles.itemTitle}>{item.title}</Text>
         <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
@@ -73,11 +78,40 @@ export default function Cart() {
     incrementItem,
     decrementItem,
     getTotalPrice,
-    // resetCart,
+    resetCart,
   } = useCartStore()
 
+  const { mutateAsync: createSupabaseOrder } = createOrder()
+  const { mutateAsync: createSupabaseOrderItem } = createOrderItem()
+
   const handleCheckout = async () => {
-    Alert.alert(`Proceding to Checkout', 'Total amount: ${getTotalPrice()}`)
+    const totalPrice = parseFloat(getTotalPrice())
+
+    try {
+      await createSupabaseOrder(
+        { totalPrice },
+        {
+          onSuccess: data => {
+            createSupabaseOrderItem(
+              items.map(item => ({
+                orderId: data.id,
+                productId: item.id,
+                quantity: item.quantity,
+              })),
+              {
+                onSuccess: () => {
+                  Alert.alert('Order created successfully!')
+                  resetCart()
+                },
+              }
+            )
+          },
+        }
+      )
+    } catch (error) {
+      console.log(error)
+      alert('An error occurred while creating the order.')
+    }
   }
 
   return (
