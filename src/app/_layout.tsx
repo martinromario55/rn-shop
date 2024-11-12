@@ -1,35 +1,41 @@
-import React from 'react'
-import { Stack } from 'expo-router'
-import { ToastProvider } from 'react-native-toast-notifications'
-import AuthProvider from '../providers/auth-provider'
-import QueryProvider from '../providers/query-proviter'
+import React from "react";
+import { Stack } from "expo-router";
+import { ToastProvider } from "react-native-toast-notifications";
+import AuthProvider from "../providers/auth-provider";
+import QueryProvider from "../providers/query-proviter";
+import { StripeProvider } from "@stripe/stripe-react-native";
 
 const RootLayout = () => {
   return (
     <ToastProvider>
       <AuthProvider>
         <QueryProvider>
-          <Stack>
-            <Stack.Screen
-              name="(shop)"
-              options={{ headerShown: false, title: 'shop' }}
-            />
+          <StripeProvider publishableKey={process.env.STRIPE_PUBLISHABLE_KEY!}>
+            <Stack>
+              <Stack.Screen
+                name="(shop)"
+                options={{ headerShown: false, title: "shop" }}
+              />
 
-            <Stack.Screen name="categories" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="categories"
+                options={{ headerShown: false }}
+              />
 
-            <Stack.Screen name="product" options={{ headerShown: false }} />
+              <Stack.Screen name="product" options={{ headerShown: false }} />
 
-            <Stack.Screen
-              name="cart"
-              options={{ presentation: 'modal', title: 'Shopping Cart' }}
-            />
+              <Stack.Screen
+                name="cart"
+                options={{ presentation: "modal", title: "Shopping Cart" }}
+              />
 
-            <Stack.Screen name="auth" options={{ headerShown: false }} />
-          </Stack>
+              <Stack.Screen name="auth" options={{ headerShown: false }} />
+            </Stack>
+          </StripeProvider>
         </QueryProvider>
       </AuthProvider>
     </ToastProvider>
-  )
-}
+  );
+};
 
-export default RootLayout
+export default RootLayout;

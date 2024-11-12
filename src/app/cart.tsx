@@ -7,26 +7,27 @@ import {
   TouchableOpacity,
   FlatList,
   Image,
-} from 'react-native'
-import { useCartStore } from '../store/cart-store'
-import { StatusBar } from 'expo-status-bar'
-import { createOrder, createOrderItem } from '../api/api'
+} from "react-native";
+import { useCartStore } from "../store/cart-store";
+import { StatusBar } from "expo-status-bar";
+import { createOrder, createOrderItem } from "../api/api";
+import { openStripeCheckout, setupStripePaymentSheet } from "../lib/stripe";
 
 type CartItemType = {
-  id: number
-  title: string
-  heroImage: string
-  price: number
-  quantity: number
-  maxQuantity: number
-}
+  id: number;
+  title: string;
+  heroImage: string;
+  price: number;
+  quantity: number;
+  maxQuantity: number;
+};
 
 type CartItemProps = {
-  item: CartItemType
-  onRemove: (id: number) => void
-  onIncrement: (id: number) => void
-  onDecrement: (id: number) => void
-}
+  item: CartItemType;
+  onRemove: (id: number) => void;
+  onIncrement: (id: number) => void;
+  onDecrement: (id: number) => void;
+};
 
 const CartItem = ({
   item,
@@ -68,8 +69,8 @@ const CartItem = ({
         <Text style={styles.removeButtonText}>Remove</Text>
       </TouchableOpacity>
     </View>
-  )
-}
+  );
+};
 
 export default function Cart() {
   const {
@@ -79,15 +80,24 @@ export default function Cart() {
     decrementItem,
     getTotalPrice,
     resetCart,
-  } = useCartStore()
+  } = useCartStore();
 
-  const { mutateAsync: createSupabaseOrder } = createOrder()
-  const { mutateAsync: createSupabaseOrderItem } = createOrderItem()
+  const { mutateAsync: createSupabaseOrder } = createOrder();
+  const { mutateAsync: createSupabaseOrderItem } = createOrderItem();
 
   const handleCheckout = async () => {
-    const totalPrice = parseFloat(getTotalPrice())
+    const totalPrice = parseFloat(getTotalPrice());
 
     try {
+      await setupStripePaymentSheet(Math.floor(totalPrice * 100));
+
+      const result = await openStripeCheckout();
+
+      if (!result) {
+        Alert.alert("An error occurred while processing the payment");
+        return;
+      }
+      
       await createSupabaseOrder(
         { totalPrice },
         {
@@ -100,23 +110,23 @@ export default function Cart() {
               })),
               {
                 onSuccess: () => {
-                  Alert.alert('Order created successfully!')
-                  resetCart()
+                  Alert.alert("Order created successfully!");
+                  resetCart();
                 },
               }
-            )
+            );
           },
         }
-      )
+      );
     } catch (error) {
-      console.log(error)
-      alert('An error occurred while creating the order.')
+      console.log(error);
+      alert("An error occurred while creating the order.");
     }
-  }
+  };
 
   return (
     <View style={styles.container}>
-      <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
+      <StatusBar style={Platform.OS === "ios" ? "light" : "auto"} />
 
       <FlatList
         data={items}
@@ -142,25 +152,25 @@ export default function Cart() {
         </TouchableOpacity>
       </View>
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     paddingHorizontal: 16,
   },
   cartList: {
     paddingVertical: 16,
   },
   cartItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 16,
     padding: 16,
     borderRadius: 8,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: "#f9f9f9",
   },
   itemImage: {
     width: 80,
@@ -173,65 +183,65 @@ const styles = StyleSheet.create({
   },
   itemTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 4,
   },
   itemPrice: {
     fontSize: 16,
-    color: '#888',
+    color: "#888",
     marginBottom: 4,
   },
   itemQuantity: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
   removeButton: {
     padding: 8,
-    backgroundColor: '#ff5252',
+    backgroundColor: "#ff5252",
     borderRadius: 8,
   },
   removeButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 14,
   },
   footer: {
     borderTopWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     paddingVertical: 16,
     paddingHorizontal: 16,
-    alignItems: 'center',
+    alignItems: "center",
   },
   totalText: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 16,
   },
   checkoutButton: {
-    backgroundColor: '#28a745',
+    backgroundColor: "#28a745",
     paddingVertical: 12,
     paddingHorizontal: 32,
     borderRadius: 8,
   },
   checkoutButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   quantityContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   quantityButton: {
     width: 30,
     height: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderRadius: 15,
-    backgroundColor: '#ddd',
+    backgroundColor: "#ddd",
     marginHorizontal: 5,
   },
   quantityButtonText: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
-})
+});

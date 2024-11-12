@@ -4,20 +4,20 @@ import {
   StyleSheet,
   FlatList,
   ActivityIndicator,
-} from 'react-native'
-import React from 'react'
-import { PRODUCTS } from '../../../assets/products'
-import { ProductListItem } from '../../components/product-list-item'
-import { ListHeader } from '../../components/list-header'
-import { getProductsAndCategories } from '../../api/api'
+} from "react-native";
+import React from "react";
+import { PRODUCTS } from "../../../assets/products";
+import { ProductListItem } from "../../components/product-list-item";
+import { ListHeader } from "../../components/list-header";
+import { getProductsAndCategories } from "../../api/api";
 
 const Home = () => {
-  const { data, error, isLoading } = getProductsAndCategories()
+  const { data, error, isLoading } = getProductsAndCategories();
 
-  if (isLoading) return <ActivityIndicator />
+  if (isLoading) return <ActivityIndicator />;
 
   if (error || !data)
-    return <Text>Error {error?.message || 'An error occured'}</Text>
+    return <Text>Error {error?.message || "An error occured"}</Text>;
 
   // console.log(data)
 
@@ -34,16 +34,16 @@ const Home = () => {
         style={{ paddingHorizontal: 10, paddingVertical: 5 }}
       />
     </View>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;
 
 const styles = StyleSheet.create({
   flatListContent: {
     paddingBottom: 20,
   },
   flatListColumn: {
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
   },
-})
+});
